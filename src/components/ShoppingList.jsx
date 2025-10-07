@@ -29,12 +29,12 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
   }
 
   const getDateForDay = (dayIndex) => {
-    // Parse date as local time to avoid timezone issues
+    // Parse date string and add days - ensuring no timezone conversion
     const [year, month, day] = list.week_start.split('-').map(Number)
-    const weekStart = new Date(year, month - 1, day)
-    const date = new Date(weekStart)
-    date.setDate(date.getDate() + dayIndex)
-    const dayNum = date.getDate()
+    const weekStart = new Date(year, month - 1, day, 12, 0, 0) // Use noon to avoid DST issues
+    weekStart.setDate(weekStart.getDate() + dayIndex)
+    const dayNum = weekStart.getDate()
+
     return `${dayNum}${getOrdinalSuffix(dayNum)}`
   }
 
