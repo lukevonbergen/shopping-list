@@ -54,6 +54,7 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
     { id: 'sunday_dinner', label: 'Sunday Dinner', dayIndex: 6 },
     { id: 'luke_lunch', label: "Luke's Weekly Lunches", dayIndex: null },
     { id: 'charlie_lunch', label: "Charlie's Weekly Lunches", dayIndex: null },
+    { id: 'snacks', label: "Snacks", dayIndex: null },
   ]
 
   const toggleCategory = (categoryId) => {
