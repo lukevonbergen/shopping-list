@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './ShoppingList.css'
 
-function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onDeleteItem, onUpdateCost }) {
+function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onDeleteItem, onUpdateCost, onUpdateMealTitle, onCreateWeek }) {
   const [newItemName, setNewItemName] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('monday_dinner')
   const [editingNotes, setEditingNotes] = useState(null)
@@ -9,18 +9,42 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
   const [totalCost, setTotalCost] = useState(list.total_cost || 0)
   const [editingCost, setEditingCost] = useState(false)
   const [categoryInputs, setCategoryInputs] = useState({})
+  const [expandedCategories, setExpandedCategories] = useState({})
+  const [mealTitles, setMealTitles] = useState(list.meal_titles || {})
+  const [editingMealTitle, setEditingMealTitle] = useState(null)
+
+  const getDateForDay = (dayIndex) => {
+    const weekStart = new Date(list.week_start)
+    const date = new Date(weekStart)
+    date.setDate(date.getDate() + dayIndex)
+    return date.getDate()
+  }
 
   const categories = [
-    { id: 'monday_dinner', label: 'Monday Dinner' },
-    { id: 'tuesday_dinner', label: 'Tuesday Dinner' },
-    { id: 'wednesday_dinner', label: 'Wednesday Dinner' },
-    { id: 'thursday_dinner', label: 'Thursday Dinner' },
-    { id: 'friday_dinner', label: 'Friday Dinner' },
-    { id: 'saturday_dinner', label: 'Saturday Dinner' },
-    { id: 'sunday_dinner', label: 'Sunday Dinner' },
-    { id: 'luke_lunch', label: "Luke's Weekly Lunches" },
-    { id: 'charlie_lunch', label: "Charlie's Weekly Lunches" },
+    { id: 'monday_dinner', label: 'Monday Dinner', dayIndex: 0 },
+    { id: 'tuesday_dinner', label: 'Tuesday Dinner', dayIndex: 1 },
+    { id: 'wednesday_dinner', label: 'Wednesday Dinner', dayIndex: 2 },
+    { id: 'thursday_dinner', label: 'Thursday Dinner', dayIndex: 3 },
+    { id: 'friday_dinner', label: 'Friday Dinner', dayIndex: 4 },
+    { id: 'saturday_dinner', label: 'Saturday Dinner', dayIndex: 5 },
+    { id: 'sunday_dinner', label: 'Sunday Dinner', dayIndex: 6 },
+    { id: 'luke_lunch', label: "Luke's Weekly Lunches", dayIndex: null },
+    { id: 'charlie_lunch', label: "Charlie's Weekly Lunches", dayIndex: null },
   ]
+
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }))
+  }
+
+  const saveMealTitle = (categoryId, title) => {
+    const newTitles = { ...mealTitles, [categoryId]: title }
+    setMealTitles(newTitles)
+    onUpdateMealTitle(newTitles)
+    setEditingMealTitle(null)
+  }
 
   const handleAddItem = (e) => {
     e.preventDefault()
@@ -136,10 +160,33 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
     ))
   }
 
+  const createNewWeek = (weekOffset) => {
+    const baseDate = new Date(list.week_start)
+    const newWeekStart = new Date(baseDate)
+    newWeekStart.setDate(newWeekStart.getDate() + (weekOffset * 7))
+    onCreateWeek(newWeekStart.toISOString().split('T')[0])
+  }
+
   return (
     <div className="shopping-list">
       <div className="list-header">
-        <h2>Week of {formatWeekRange(list.week_start)}</h2>
+        <div className="week-navigation">
+          <button
+            className="week-nav-btn"
+            onClick={() => createNewWeek(-1)}
+            title="Create previous week"
+          >
+            ←
+          </button>
+          <h2>Week of {formatWeekRange(list.week_start)}</h2>
+          <button
+            className="week-nav-btn"
+            onClick={() => createNewWeek(1)}
+            title="Create next week"
+          >
+            →
+          </button>
+        </div>
         <div className="progress-bar">
           <div
             className="progress-fill"
@@ -170,24 +217,86 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
       </form>
 
       <div className="categories-container">
-        {categories.map(category => (
-          <div key={category.id} className="category-section">
-            <h3 className="category-title">{category.label}</h3>
-            <form onSubmit={(e) => handleAddItemToCategory(category.id, e)} className="category-add-form">
-              <input
-                type="text"
-                value={categoryInputs[category.id] || ''}
-                onChange={(e) => setCategoryInputs({ ...categoryInputs, [category.id]: e.target.value })}
-                placeholder="Add item..."
-                className="category-input"
-              />
-              <button type="submit" className="category-add-btn">+</button>
-            </form>
-            <div className="category-items">
-              {renderItemsList(groupedItems[category.id])}
+        {categories.map(category => {
+          const isExpanded = expandedCategories[category.id]
+          const categoryItems = groupedItems[category.id] || []
+          const itemCount = categoryItems.length
+          const completedCount = categoryItems.filter(item => item.completed).length
+
+          return (
+            <div key={category.id} className="category-section">
+              <div className="category-header" onClick={() => toggleCategory(category.id)}>
+                <div className="category-header-left">
+                  <span className="category-chevron">{isExpanded ? '▼' : '▶'}</span>
+                  <div className="category-title-container">
+                    <h3 className="category-title">
+                      {category.label}
+                      {category.dayIndex !== null && (
+                        <span className="category-date">{getDateForDay(category.dayIndex)}</span>
+                      )}
+                    </h3>
+                    {mealTitles[category.id] && !editingMealTitle && (
+                      <p className="meal-title" onClick={(e) => {
+                        e.stopPropagation()
+                        setEditingMealTitle(category.id)
+                      }}>
+                        {mealTitles[category.id]}
+                      </p>
+                    )}
+                    {editingMealTitle === category.id && (
+                      <input
+                        type="text"
+                        className="meal-title-input"
+                        defaultValue={mealTitles[category.id] || ''}
+                        placeholder="Add meal title..."
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                        onBlur={(e) => saveMealTitle(category.id, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            saveMealTitle(category.id, e.target.value)
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="category-count">
+                  {completedCount}/{itemCount}
+                </div>
+              </div>
+
+              {isExpanded && (
+                <div className="category-content">
+                  {!mealTitles[category.id] && !editingMealTitle && (
+                    <button
+                      className="add-meal-title-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setEditingMealTitle(category.id)
+                      }}
+                    >
+                      + Add meal title
+                    </button>
+                  )}
+                  <form onSubmit={(e) => handleAddItemToCategory(category.id, e)} className="category-add-form">
+                    <input
+                      type="text"
+                      value={categoryInputs[category.id] || ''}
+                      onChange={(e) => setCategoryInputs({ ...categoryInputs, [category.id]: e.target.value })}
+                      placeholder="Add item..."
+                      className="category-input"
+                    />
+                    <button type="submit" className="category-add-btn">+</button>
+                  </form>
+                  <div className="category-items">
+                    {renderItemsList(categoryItems)}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <div className="total-cost-section">

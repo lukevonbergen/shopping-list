@@ -250,6 +250,58 @@ function App() {
     if (error) console.error('Error updating cost:', error)
   }
 
+  const updateMealTitles = async (mealTitles) => {
+    if (!currentList) return
+
+    console.log('📝 Updating meal titles:', mealTitles)
+
+    // Optimistic update
+    setCurrentList(prev => ({ ...prev, meal_titles: mealTitles }))
+
+    const { error } = await supabase
+      .from('lists')
+      .update({ meal_titles: mealTitles })
+      .eq('id', currentList.id)
+
+    if (error) {
+      console.error('❌ Error updating meal titles:', error)
+    }
+  }
+
+  const createWeek = async (weekStart) => {
+    console.log('➕ Creating new week:', weekStart)
+
+    // Check if week already exists
+    const { data: existingList } = await supabase
+      .from('lists')
+      .select('*')
+      .eq('week_start', weekStart)
+      .maybeSingle()
+
+    if (existingList) {
+      console.warn('⚠️ Week already exists')
+      alert('This week already exists! Check the History tab.')
+      return
+    }
+
+    // Create new week
+    const { data: newList, error } = await supabase
+      .from('lists')
+      .insert([{ week_start: weekStart, total_cost: 0 }])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('❌ Error creating week:', error)
+      alert('Failed to create week')
+    } else {
+      console.log('✅ Week created:', newList)
+      const weekEnd = new Date(weekStart)
+      weekEnd.setDate(weekEnd.getDate() + 6)
+      alert(`New week created! ${new Date(weekStart).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`)
+    }
+  }
+
   return (
     <div className="app">
       <header className="app-header">
@@ -286,6 +338,8 @@ function App() {
             onUpdateNotes={updateItemNotes}
             onDeleteItem={deleteItem}
             onUpdateCost={updateTotalCost}
+            onUpdateMealTitle={updateMealTitles}
+            onCreateWeek={createWeek}
           />
         )}
         {activeView === 'history' && (
