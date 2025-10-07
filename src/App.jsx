@@ -90,7 +90,6 @@ function App() {
       }
     }
   }
-  }
 
   const fetchLists = async () => {
     const { data, error } = await supabase
