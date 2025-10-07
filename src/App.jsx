@@ -50,9 +50,9 @@ function App() {
       .select('*')
       .gte('week_start', weekStart.toISOString().split('T')[0])
       .lte('week_start', weekEnd.toISOString().split('T')[0])
-      .single()
+      .maybeSingle()
 
-    if (error && error.code === 'PGRST116') {
+    if (!data) {
       // No list for this week, create one
       const { data: newList, error: createError } = await supabase
         .from('lists')
