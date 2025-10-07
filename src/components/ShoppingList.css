@@ -486,7 +486,7 @@
 
 .item-name {
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #1d1d1f;
   font-weight: 400;
   letter-spacing: -0.2px;
@@ -538,7 +538,7 @@
   }
 
   .item-name {
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
   }
 
   .notes-btn:hover {
