@@ -31,9 +31,12 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
   const getDateForDay = (dayIndex) => {
     // Parse date string and add days - ensuring no timezone conversion
     const [year, month, day] = list.week_start.split('-').map(Number)
+    console.log(`Parsing week_start: ${list.week_start} -> year=${year}, month=${month}, day=${day}`)
     const weekStart = new Date(year, month - 1, day, 12, 0, 0) // Use noon to avoid DST issues
+    console.log(`Created date for Monday: ${weekStart.toDateString()}`)
     weekStart.setDate(weekStart.getDate() + dayIndex)
     const dayNum = weekStart.getDate()
+    console.log(`Day ${dayIndex} (adding ${dayIndex} days): ${weekStart.toDateString()} = ${dayNum}`)
 
     return `${dayNum}${getOrdinalSuffix(dayNum)}`
   }
