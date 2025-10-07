@@ -12,17 +12,14 @@ function App() {
   const [items, setItems] = useState([])
 
   useEffect(() => {
-    console.log('🚀 App mounted, initializing...')
     // Get or create current week's list
     fetchCurrentList()
     fetchLists()
 
     // Subscribe to real-time changes
-    console.log('📡 Setting up real-time subscriptions...')
     const listsSubscription = supabase
       .channel('lists_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lists' }, (payload) => {
-        console.log('🔔 List change event:', payload.eventType, payload)
         if (payload.eventType === 'INSERT') {
           setLists(prev => [payload.new, ...prev])
         } else if (payload.eventType === 'UPDATE') {
@@ -35,54 +32,40 @@ function App() {
     const itemsSubscription = supabase
       .channel('items_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, (payload) => {
-        console.log('🔔 Item change event:', payload.eventType, payload)
-
         if (payload.eventType === 'INSERT') {
-          console.log('➕ Adding new item to state:', payload.new)
           setItems(prev => {
             // Avoid duplicates
             if (prev.find(item => item.id === payload.new.id)) {
-              console.log('⚠️ Item already exists, skipping')
               return prev
             }
             return [...prev, payload.new]
           })
         } else if (payload.eventType === 'UPDATE') {
-          console.log('✏️ Updating item in state:', payload.new)
           setItems(prev => prev.map(item => item.id === payload.new.id ? payload.new : item))
         } else if (payload.eventType === 'DELETE') {
-          console.log('🗑️ Removing item from state:', payload.old)
           setItems(prev => prev.filter(item => item.id !== payload.old.id))
         }
       })
       .subscribe()
 
-    console.log('✅ Subscriptions created')
-
     return () => {
-      console.log('🔌 Cleaning up subscriptions')
       supabase.removeChannel(listsSubscription)
       supabase.removeChannel(itemsSubscription)
     }
   }, [])
 
   useEffect(() => {
-    console.log('📋 Current list changed:', currentList)
     if (currentList) {
-      console.log('🔍 Fetching items for list:', currentList.id)
       fetchItems(currentList.id)
     }
   }, [currentList])
 
   const fetchCurrentList = async () => {
-    console.log('📅 Fetching current list...')
     const today = new Date()
     const weekStartStr = getWeekStart(today)
     const [year, month, day] = weekStartStr.split('-').map(Number)
     const weekEnd = new Date(year, month - 1, day + 6)
     const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth() + 1).padStart(2, '0')}-${String(weekEnd.getDate()).padStart(2, '0')}`
-
-    console.log('📆 Week range:', weekStartStr, 'to', weekEndStr)
 
     let { data, error } = await supabase
       .from('lists')
@@ -92,13 +75,9 @@ function App() {
       .order('created_at', { ascending: false })
       .limit(1)
 
-    console.log('🔎 Query result - data:', data, 'error:', error)
-
     if (!error && data && data.length > 0) {
-      console.log('✅ Found existing list:', data[0])
       setCurrentList(data[0])
     } else if (!error && (!data || data.length === 0)) {
-      console.log('➕ No list found, creating new one...')
       // No list for this week, create one
       const { data: newList, error: createError } = await supabase
         .from('lists')
@@ -106,98 +85,67 @@ function App() {
         .select()
         .single()
 
-      console.log('✨ Created new list - data:', newList, 'error:', createError)
-
       if (!createError) {
         setCurrentList(newList)
-      } else {
-        console.error('❌ Error creating list:', createError)
       }
-    } else {
-      console.error('❌ Error fetching list:', error)
     }
+  }
   }
 
   const fetchLists = async () => {
-    console.log('📚 Fetching all lists...')
     const { data, error } = await supabase
       .from('lists')
       .select('*')
       .order('week_start', { ascending: false })
 
-    console.log('📚 All lists - data:', data, 'error:', error)
-
     if (!error) {
       setLists(data)
-    } else {
-      console.error('❌ Error fetching lists:', error)
     }
   }
 
   const fetchItems = async (listId) => {
-    console.log('🛒 Fetching items for list:', listId)
     const { data, error } = await supabase
       .from('items')
       .select('*')
       .eq('list_id', listId)
       .order('created_at', { ascending: true })
 
-    console.log('🛒 Items query - data:', data, 'error:', error)
-
     if (!error) {
-      console.log(`✅ Setting ${data?.length || 0} items`)
       setItems(data)
-    } else {
-      console.error('❌ Error fetching items:', error)
     }
   }
 
 
   const getWeekStart = (date) => {
     const d = new Date(date)
-    console.log('getWeekStart input:', d.toDateString(), 'getDay():', d.getDay())
     const day = d.getDay()
     const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
-    console.log('Calculation: getDate()=', d.getDate(), 'day=', day, 'diff=', diff)
     d.setDate(diff)
-    console.log('Week start date:', d.toDateString())
     // Return as YYYY-MM-DD string in local time
     const year = d.getFullYear()
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const dayStr = String(d.getDate()).padStart(2, '0')
-    const result = `${year}-${month}-${dayStr}`
-    console.log('Week start string:', result)
-    return result
+    return `${year}-${month}-${dayStr}`
   }
 
   const addItem = async (itemName, category) => {
-    console.log('➕ Adding item:', itemName, 'category:', category)
     if (!currentList || !itemName.trim()) {
-      console.warn('⚠️ Cannot add item - no current list or empty name')
       return
     }
 
-    console.log('💾 Inserting to list:', currentList.id)
     const { data, error } = await supabase
       .from('items')
       .insert([{ list_id: currentList.id, name: itemName, category, completed: false, notes: '' }])
       .select()
       .single()
 
-    console.log('➕ Insert result - data:', data, 'error:', error)
-
-    if (error) {
-      console.error('❌ Error adding item:', error)
-    } else if (data) {
+    if (!error && data) {
       // Optimistic update - add immediately to UI
-      console.log('✨ Optimistically adding item to UI:', data)
       setItems(prev => [...prev, data])
     }
   }
 
   const toggleItem = async (itemId, completed) => {
-    console.log('✅ Toggling item:', itemId, 'to', completed)
-
     // Optimistic update
     setItems(prev => prev.map(item => item.id === itemId ? { ...item, completed } : item))
 
@@ -207,15 +155,12 @@ function App() {
       .eq('id', itemId)
 
     if (error) {
-      console.error('❌ Error toggling item:', error)
       // Revert on error
       setItems(prev => prev.map(item => item.id === itemId ? { ...item, completed: !completed } : item))
     }
   }
 
   const updateItemNotes = async (itemId, notes) => {
-    console.log('📝 Updating notes for item:', itemId)
-
     // Optimistic update
     setItems(prev => prev.map(item => item.id === itemId ? { ...item, notes } : item))
 
@@ -223,15 +168,9 @@ function App() {
       .from('items')
       .update({ notes })
       .eq('id', itemId)
-
-    if (error) {
-      console.error('❌ Error updating notes:', error)
-    }
   }
 
   const deleteItem = async (itemId) => {
-    console.log('🗑️ Deleting item:', itemId)
-
     // Optimistic update
     const deletedItem = items.find(item => item.id === itemId)
     setItems(prev => prev.filter(item => item.id !== itemId))
@@ -242,7 +181,6 @@ function App() {
       .eq('id', itemId)
 
     if (error) {
-      console.error('❌ Error deleting item:', error)
       // Revert on error
       if (deletedItem) {
         setItems(prev => [...prev, deletedItem])
@@ -253,35 +191,25 @@ function App() {
   const updateTotalCost = async (cost) => {
     if (!currentList) return
 
-    const { error } = await supabase
+    await supabase
       .from('lists')
       .update({ total_cost: cost })
       .eq('id', currentList.id)
-
-    if (error) console.error('Error updating cost:', error)
   }
 
   const updateMealTitles = async (mealTitles) => {
     if (!currentList) return
 
-    console.log('📝 Updating meal titles:', mealTitles)
-
     // Optimistic update
     setCurrentList(prev => ({ ...prev, meal_titles: mealTitles }))
 
-    const { error } = await supabase
+    await supabase
       .from('lists')
       .update({ meal_titles: mealTitles })
       .eq('id', currentList.id)
-
-    if (error) {
-      console.error('❌ Error updating meal titles:', error)
-    }
   }
 
   const createWeek = async (weekStart) => {
-    console.log('➕ Creating or navigating to week:', weekStart)
-
     // Check if week already exists
     const { data: existingList } = await supabase
       .from('lists')
@@ -290,7 +218,6 @@ function App() {
       .maybeSingle()
 
     if (existingList) {
-      console.log('✅ Week already exists, navigating to it:', existingList)
       setCurrentList(existingList)
       return
     }
@@ -302,11 +229,7 @@ function App() {
       .select()
       .single()
 
-    if (error) {
-      console.error('❌ Error creating week:', error)
-      alert('Failed to create week')
-    } else {
-      console.log('✅ Week created:', newList)
+    if (!error && newList) {
       setCurrentList(newList)
     }
   }
