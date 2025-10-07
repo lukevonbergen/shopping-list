@@ -274,7 +274,7 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
                         onClick={() => startEditingNotes(item)}
                         className="notes-btn"
                       >
-                        Edit
+                        Notes
                       </button>
                       <button
                         onClick={() => onDeleteItem(item.id)}
