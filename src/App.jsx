@@ -155,14 +155,19 @@ function App() {
 
   const getWeekStart = (date) => {
     const d = new Date(date)
+    console.log('getWeekStart input:', d.toDateString(), 'getDay():', d.getDay())
     const day = d.getDay()
     const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
+    console.log('Calculation: getDate()=', d.getDate(), 'day=', day, 'diff=', diff)
     d.setDate(diff)
+    console.log('Week start date:', d.toDateString())
     // Return as YYYY-MM-DD string in local time
     const year = d.getFullYear()
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const dayStr = String(d.getDate()).padStart(2, '0')
-    return `${year}-${month}-${dayStr}`
+    const result = `${year}-${month}-${dayStr}`
+    console.log('Week start string:', result)
+    return result
   }
 
   const addItem = async (itemName, category) => {
