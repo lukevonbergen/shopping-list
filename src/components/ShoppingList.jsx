@@ -19,6 +19,11 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
     setMealTitles(list.meal_titles || {})
   }, [list.id, list.meal_titles])
 
+  // Update total cost when list changes
+  useEffect(() => {
+    setTotalCost(list.total_cost || 0)
+  }, [list.total_cost])
+
   const getOrdinalSuffix = (day) => {
     if (day > 3 && day < 21) return 'th'
     switch (day % 10) {
@@ -97,7 +102,7 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
   }
 
   const handleCostChange = (e) => {
-    const value = parseFloat(e.target.value) || 0
+    const value = e.target.value === '' ? 0 : parseFloat(e.target.value)
     setTotalCost(value)
   }
 
