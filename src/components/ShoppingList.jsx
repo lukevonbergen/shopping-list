@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './ShoppingList.css'
 
 function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onDeleteItem, onUpdateCost, onUpdateMealTitle, onCreateWeek }) {
@@ -10,8 +10,13 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
   const [editingCost, setEditingCost] = useState(false)
   const [categoryInputs, setCategoryInputs] = useState({})
   const [expandedCategories, setExpandedCategories] = useState({})
-  const [mealTitles, setMealTitles] = useState(list.meal_titles || {})
+  const [mealTitles, setMealTitles] = useState({})
   const [editingMealTitle, setEditingMealTitle] = useState(null)
+
+  // Update meal titles when list changes
+  useEffect(() => {
+    setMealTitles(list.meal_titles || {})
+  }, [list.id, list.meal_titles])
 
   const getOrdinalSuffix = (day) => {
     if (day > 3 && day < 21) return 'th'
@@ -24,11 +29,13 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
   }
 
   const getDateForDay = (dayIndex) => {
-    const weekStart = new Date(list.week_start)
+    // Parse date as local time to avoid timezone issues
+    const [year, month, day] = list.week_start.split('-').map(Number)
+    const weekStart = new Date(year, month - 1, day)
     const date = new Date(weekStart)
     date.setDate(date.getDate() + dayIndex)
-    const day = date.getDate()
-    return `${day}${getOrdinalSuffix(day)}`
+    const dayNum = date.getDate()
+    return `${dayNum}${getOrdinalSuffix(dayNum)}`
   }
 
   const categories = [
