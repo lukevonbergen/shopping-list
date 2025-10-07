@@ -158,16 +158,14 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
             <button
               onClick={() => startEditingNotes(item)}
               className="notes-btn"
-              title="Add notes"
             >
-              📝
+              Edit
             </button>
             <button
               onClick={() => onDeleteItem(item.id)}
               className="delete-btn"
-              title="Delete item"
             >
-              🗑️
+              Delete
             </button>
           </div>
         </div>
@@ -275,16 +273,14 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
                       <button
                         onClick={() => startEditingNotes(item)}
                         className="notes-btn"
-                        title="Add notes"
                       >
-                        📝
+                        Edit
                       </button>
                       <button
                         onClick={() => onDeleteItem(item.id)}
                         className="delete-btn"
-                        title="Delete item"
                       >
-                        🗑️
+                        Delete
                       </button>
                     </div>
                   </div>
