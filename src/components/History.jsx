@@ -123,6 +123,7 @@ function History({ lists, currentListId }) {
                   if (categoryItems.length === 0) return null
 
                   const isExpanded = expandedCategories[category.id]
+                  const mealTitle = selectedList.meal_titles?.[category.id]
 
                   return (
                     <div key={category.id} className="history-category">
@@ -131,7 +132,12 @@ function History({ lists, currentListId }) {
                         onClick={() => toggleCategory(category.id)}
                       >
                         <span className="category-chevron">{isExpanded ? '▼' : '▶'}</span>
-                        <h4>{category.label}</h4>
+                        <div className="category-title-container">
+                          <h4>{category.label}</h4>
+                          {mealTitle && (
+                            <p className="history-meal-title">{mealTitle}</p>
+                          )}
+                        </div>
                         <span className="category-count">({categoryItems.length})</span>
                       </div>
                       {isExpanded && (
