@@ -8,6 +8,7 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
   const [notesText, setNotesText] = useState('')
   const [totalCost, setTotalCost] = useState(list.total_cost || 0)
   const [editingCost, setEditingCost] = useState(false)
+  const [categoryInputs, setCategoryInputs] = useState({})
 
   const categories = [
     { id: 'monday_dinner', label: 'Monday Dinner' },
@@ -26,6 +27,15 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
     if (newItemName.trim()) {
       onAddItem(newItemName, selectedCategory)
       setNewItemName('')
+    }
+  }
+
+  const handleAddItemToCategory = (categoryId, e) => {
+    e.preventDefault()
+    const itemName = categoryInputs[categoryId] || ''
+    if (itemName.trim()) {
+      onAddItem(itemName, categoryId)
+      setCategoryInputs({ ...categoryInputs, [categoryId]: '' })
     }
   }
 
@@ -163,6 +173,16 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
         {categories.map(category => (
           <div key={category.id} className="category-section">
             <h3 className="category-title">{category.label}</h3>
+            <form onSubmit={(e) => handleAddItemToCategory(category.id, e)} className="category-add-form">
+              <input
+                type="text"
+                value={categoryInputs[category.id] || ''}
+                onChange={(e) => setCategoryInputs({ ...categoryInputs, [category.id]: e.target.value })}
+                placeholder="Add item..."
+                className="category-input"
+              />
+              <button type="submit" className="category-add-btn">+</button>
+            </form>
             <div className="category-items">
               {renderItemsList(groupedItems[category.id])}
             </div>

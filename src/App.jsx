@@ -172,37 +172,72 @@ function App() {
       .from('items')
       .insert([{ list_id: currentList.id, name: itemName, category, completed: false, notes: '' }])
       .select()
+      .single()
 
     console.log('➕ Insert result - data:', data, 'error:', error)
 
-    if (error) console.error('❌ Error adding item:', error)
+    if (error) {
+      console.error('❌ Error adding item:', error)
+    } else if (data) {
+      // Optimistic update - add immediately to UI
+      console.log('✨ Optimistically adding item to UI:', data)
+      setItems(prev => [...prev, data])
+    }
   }
 
   const toggleItem = async (itemId, completed) => {
+    console.log('✅ Toggling item:', itemId, 'to', completed)
+
+    // Optimistic update
+    setItems(prev => prev.map(item => item.id === itemId ? { ...item, completed } : item))
+
     const { error } = await supabase
       .from('items')
       .update({ completed })
       .eq('id', itemId)
 
-    if (error) console.error('Error toggling item:', error)
+    if (error) {
+      console.error('❌ Error toggling item:', error)
+      // Revert on error
+      setItems(prev => prev.map(item => item.id === itemId ? { ...item, completed: !completed } : item))
+    }
   }
 
   const updateItemNotes = async (itemId, notes) => {
+    console.log('📝 Updating notes for item:', itemId)
+
+    // Optimistic update
+    setItems(prev => prev.map(item => item.id === itemId ? { ...item, notes } : item))
+
     const { error } = await supabase
       .from('items')
       .update({ notes })
       .eq('id', itemId)
 
-    if (error) console.error('Error updating notes:', error)
+    if (error) {
+      console.error('❌ Error updating notes:', error)
+    }
   }
 
   const deleteItem = async (itemId) => {
+    console.log('🗑️ Deleting item:', itemId)
+
+    // Optimistic update
+    const deletedItem = items.find(item => item.id === itemId)
+    setItems(prev => prev.filter(item => item.id !== itemId))
+
     const { error } = await supabase
       .from('items')
       .delete()
       .eq('id', itemId)
 
-    if (error) console.error('Error deleting item:', error)
+    if (error) {
+      console.error('❌ Error deleting item:', error)
+      // Revert on error
+      if (deletedItem) {
+        setItems(prev => [...prev, deletedItem])
+      }
+    }
   }
 
   const updateTotalCost = async (cost) => {
