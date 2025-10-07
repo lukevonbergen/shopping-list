@@ -60,11 +60,15 @@ function App() {
       .select('*')
       .gte('week_start', weekStart.toISOString().split('T')[0])
       .lte('week_start', weekEnd.toISOString().split('T')[0])
-      .maybeSingle()
+      .order('created_at', { ascending: false })
+      .limit(1)
 
     console.log('🔎 Query result - data:', data, 'error:', error)
 
-    if (!data) {
+    if (!error && data && data.length > 0) {
+      console.log('✅ Found existing list:', data[0])
+      setCurrentList(data[0])
+    } else if (!error && (!data || data.length === 0)) {
       console.log('➕ No list found, creating new one...')
       // No list for this week, create one
       const { data: newList, error: createError } = await supabase
@@ -80,9 +84,6 @@ function App() {
       } else {
         console.error('❌ Error creating list:', createError)
       }
-    } else if (!error) {
-      console.log('✅ Found existing list:', data)
-      setCurrentList(data)
     } else {
       console.error('❌ Error fetching list:', error)
     }
