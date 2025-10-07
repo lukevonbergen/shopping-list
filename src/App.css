@@ -89,11 +89,10 @@
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 1rem 1rem 1rem;
-  overflow-y: auto;
+  padding: 0 1rem;
+  overflow-y: scroll;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  min-height: 0;
 }
 
 @media (min-width: 768px) {

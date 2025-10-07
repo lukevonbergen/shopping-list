@@ -12,6 +12,7 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
   const [expandedCategories, setExpandedCategories] = useState({})
   const [mealTitles, setMealTitles] = useState({})
   const [editingMealTitle, setEditingMealTitle] = useState(null)
+  const [viewMode, setViewMode] = useState('grouped') // 'grouped' or 'all'
 
   // Update meal titles when list changes
   useEffect(() => {
@@ -221,10 +222,84 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
           ></div>
           <span className="progress-text">{completedCount} / {totalCount} items</span>
         </div>
+        <div className="view-toggle">
+          <button
+            className={`view-toggle-btn ${viewMode === 'grouped' ? 'active' : ''}`}
+            onClick={() => setViewMode('grouped')}
+          >
+            By Day
+          </button>
+          <button
+            className={`view-toggle-btn ${viewMode === 'all' ? 'active' : ''}`}
+            onClick={() => setViewMode('all')}
+          >
+            All Items
+          </button>
+        </div>
       </div>
 
-      <div className="categories-container">
-        {categories.map(category => {
+      {viewMode === 'all' ? (
+        <div className="all-items-view">
+          <h3>All Items ({items.length})</h3>
+          <div className="all-items-list">
+            {items.length === 0 ? (
+              <p className="no-items">No items yet</p>
+            ) : (
+              items.map(item => (
+                <div key={item.id} className={`item ${item.completed ? 'completed' : ''}`}>
+                  <div className="item-main">
+                    <input
+                      type="checkbox"
+                      checked={item.completed}
+                      onChange={() => onToggleItem(item.id, !item.completed)}
+                      className="item-checkbox"
+                    />
+                    <span className="item-name">{item.name}</span>
+                    <div className="item-actions">
+                      <button
+                        onClick={() => startEditingNotes(item)}
+                        className="notes-btn"
+                        title="Add notes"
+                      >
+                        📝
+                      </button>
+                      <button
+                        onClick={() => onDeleteItem(item.id)}
+                        className="delete-btn"
+                        title="Delete item"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+
+                  {editingNotes === item.id ? (
+                    <div className="notes-editor">
+                      <textarea
+                        value={notesText}
+                        onChange={(e) => setNotesText(e.target.value)}
+                        placeholder="Add notes..."
+                        className="notes-textarea"
+                        autoFocus
+                      />
+                      <div className="notes-actions">
+                        <button onClick={() => saveNotes(item.id)} className="save-btn">Save</button>
+                        <button onClick={() => setEditingNotes(null)} className="cancel-btn">Cancel</button>
+                      </div>
+                    </div>
+                  ) : item.notes && (
+                    <div className="notes-display" onClick={() => startEditingNotes(item)}>
+                      {item.notes}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="categories-container">
+          {categories.map(category => {
           const isExpanded = expandedCategories[category.id]
           const categoryItems = groupedItems[category.id] || []
           const itemCount = categoryItems.length
@@ -306,7 +381,8 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
             </div>
           )
         })}
-      </div>
+        </div>
+      )}
 
       <div className="total-cost-section">
         <label>Total Cost: £</label>
