@@ -12,11 +12,13 @@ function App() {
   const [items, setItems] = useState([])
 
   useEffect(() => {
+    console.log('🚀 App mounted, initializing...')
     // Get or create current week's list
     fetchCurrentList()
     fetchLists()
 
     // Subscribe to real-time changes
+    console.log('📡 Setting up real-time subscriptions...')
     const listsSubscription = supabase
       .channel('lists_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lists' }, handleListChange)
@@ -27,23 +29,31 @@ function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, handleItemChange)
       .subscribe()
 
+    console.log('✅ Subscriptions created')
+
     return () => {
+      console.log('🔌 Cleaning up subscriptions')
       supabase.removeChannel(listsSubscription)
       supabase.removeChannel(itemsSubscription)
     }
   }, [])
 
   useEffect(() => {
+    console.log('📋 Current list changed:', currentList)
     if (currentList) {
+      console.log('🔍 Fetching items for list:', currentList.id)
       fetchItems(currentList.id)
     }
   }, [currentList])
 
   const fetchCurrentList = async () => {
+    console.log('📅 Fetching current list...')
     const today = new Date()
     const weekStart = getWeekStart(today)
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
+
+    console.log('📆 Week range:', weekStart.toISOString().split('T')[0], 'to', weekEnd.toISOString().split('T')[0])
 
     let { data, error } = await supabase
       .from('lists')
@@ -52,7 +62,10 @@ function App() {
       .lte('week_start', weekEnd.toISOString().split('T')[0])
       .maybeSingle()
 
+    console.log('🔎 Query result - data:', data, 'error:', error)
+
     if (!data) {
+      console.log('➕ No list found, creating new one...')
       // No list for this week, create one
       const { data: newList, error: createError } = await supabase
         .from('lists')
@@ -60,34 +73,52 @@ function App() {
         .select()
         .single()
 
+      console.log('✨ Created new list - data:', newList, 'error:', createError)
+
       if (!createError) {
         setCurrentList(newList)
+      } else {
+        console.error('❌ Error creating list:', createError)
       }
     } else if (!error) {
+      console.log('✅ Found existing list:', data)
       setCurrentList(data)
+    } else {
+      console.error('❌ Error fetching list:', error)
     }
   }
 
   const fetchLists = async () => {
+    console.log('📚 Fetching all lists...')
     const { data, error } = await supabase
       .from('lists')
       .select('*')
       .order('week_start', { ascending: false })
 
+    console.log('📚 All lists - data:', data, 'error:', error)
+
     if (!error) {
       setLists(data)
+    } else {
+      console.error('❌ Error fetching lists:', error)
     }
   }
 
   const fetchItems = async (listId) => {
+    console.log('🛒 Fetching items for list:', listId)
     const { data, error } = await supabase
       .from('items')
       .select('*')
       .eq('list_id', listId)
       .order('created_at', { ascending: true })
 
+    console.log('🛒 Items query - data:', data, 'error:', error)
+
     if (!error) {
+      console.log(`✅ Setting ${data?.length || 0} items`)
       setItems(data)
+    } else {
+      console.error('❌ Error fetching items:', error)
     }
   }
 
@@ -103,13 +134,20 @@ function App() {
   }
 
   const handleItemChange = (payload) => {
-    if (!currentList) return
+    console.log('🔔 Item change event:', payload.eventType, payload)
+    if (!currentList) {
+      console.warn('⚠️ No current list, ignoring item change')
+      return
+    }
 
     if (payload.eventType === 'INSERT' && payload.new.list_id === currentList.id) {
+      console.log('➕ Adding new item to state:', payload.new)
       setItems(prev => [...prev, payload.new])
     } else if (payload.eventType === 'UPDATE' && payload.new.list_id === currentList.id) {
+      console.log('✏️ Updating item in state:', payload.new)
       setItems(prev => prev.map(item => item.id === payload.new.id ? payload.new : item))
     } else if (payload.eventType === 'DELETE') {
+      console.log('🗑️ Removing item from state:', payload.old)
       setItems(prev => prev.filter(item => item.id !== payload.old.id))
     }
   }
@@ -122,13 +160,21 @@ function App() {
   }
 
   const addItem = async (itemName, category) => {
-    if (!currentList || !itemName.trim()) return
+    console.log('➕ Adding item:', itemName, 'category:', category)
+    if (!currentList || !itemName.trim()) {
+      console.warn('⚠️ Cannot add item - no current list or empty name')
+      return
+    }
 
-    const { error } = await supabase
+    console.log('💾 Inserting to list:', currentList.id)
+    const { data, error } = await supabase
       .from('items')
       .insert([{ list_id: currentList.id, name: itemName, category, completed: false, notes: '' }])
+      .select()
 
-    if (error) console.error('Error adding item:', error)
+    console.log('➕ Insert result - data:', data, 'error:', error)
+
+    if (error) console.error('❌ Error adding item:', error)
   }
 
   const toggleItem = async (itemId, completed) => {
