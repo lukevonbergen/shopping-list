@@ -1,0 +1,149 @@
+.history {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.history h2 {
+  margin: 0 0 1.5rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.history-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  min-height: 400px;
+}
+
+.history-list {
+  border-right: 2px solid #e0e0e0;
+  padding-right: 2rem;
+}
+
+.no-history {
+  color: #888;
+  text-align: center;
+  padding: 2rem;
+}
+
+.history-item {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.history-item:hover {
+  background: #f0f0f0;
+  transform: translateX(4px);
+}
+
+.history-item.selected {
+  background: #4CAF50;
+  color: white;
+}
+
+.history-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.week-range {
+  font-weight: 500;
+}
+
+.cost {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.history-detail {
+  padding-left: 1rem;
+}
+
+.history-detail h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.detail-cost {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #4CAF50;
+  margin-bottom: 2rem;
+}
+
+.detail-items h4 {
+  margin: 0 0 1rem 0;
+  color: #666;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.detail-items ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.detail-items li {
+  padding: 0.75rem;
+  background: #f9f9f9;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.detail-items li.completed {
+  opacity: 0.7;
+}
+
+.detail-items .item-name {
+  font-size: 1rem;
+  color: #333;
+}
+
+.detail-items .item-notes {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-left: 3px solid #4CAF50;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.no-items,
+.no-selection {
+  color: #888;
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.no-selection p {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .history-content {
+    grid-template-columns: 1fr;
+  }
+
+  .history-list {
+    border-right: none;
+    border-bottom: 2px solid #e0e0e0;
+    padding-right: 0;
+    padding-bottom: 1rem;
+  }
+
+  .history-detail {
+    padding-left: 0;
+  }
+}
