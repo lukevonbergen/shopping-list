@@ -77,17 +77,18 @@ function App() {
   const fetchCurrentList = async () => {
     console.log('📅 Fetching current list...')
     const today = new Date()
-    const weekStart = getWeekStart(today)
-    const weekEnd = new Date(weekStart)
-    weekEnd.setDate(weekEnd.getDate() + 6)
+    const weekStartStr = getWeekStart(today)
+    const [year, month, day] = weekStartStr.split('-').map(Number)
+    const weekEnd = new Date(year, month - 1, day + 6)
+    const weekEndStr = `${weekEnd.getFullYear()}-${String(weekEnd.getMonth() + 1).padStart(2, '0')}-${String(weekEnd.getDate()).padStart(2, '0')}`
 
-    console.log('📆 Week range:', weekStart.toISOString().split('T')[0], 'to', weekEnd.toISOString().split('T')[0])
+    console.log('📆 Week range:', weekStartStr, 'to', weekEndStr)
 
     let { data, error } = await supabase
       .from('lists')
       .select('*')
-      .gte('week_start', weekStart.toISOString().split('T')[0])
-      .lte('week_start', weekEnd.toISOString().split('T')[0])
+      .gte('week_start', weekStartStr)
+      .lte('week_start', weekEndStr)
       .order('created_at', { ascending: false })
       .limit(1)
 
@@ -101,7 +102,7 @@ function App() {
       // No list for this week, create one
       const { data: newList, error: createError } = await supabase
         .from('lists')
-        .insert([{ week_start: weekStart.toISOString().split('T')[0], total_cost: 0 }])
+        .insert([{ week_start: weekStartStr, total_cost: 0 }])
         .select()
         .single()
 
@@ -156,7 +157,12 @@ function App() {
     const d = new Date(date)
     const day = d.getDay()
     const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
-    return new Date(d.setDate(diff))
+    d.setDate(diff)
+    // Return as YYYY-MM-DD string in local time
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const dayStr = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${dayStr}`
   }
 
   const addItem = async (itemName, category) => {
@@ -340,6 +346,7 @@ function App() {
             onUpdateCost={updateTotalCost}
             onUpdateMealTitle={updateMealTitles}
             onCreateWeek={createWeek}
+            onGoToCurrentWeek={fetchCurrentList}
           />
         )}
         {activeView === 'history' && (

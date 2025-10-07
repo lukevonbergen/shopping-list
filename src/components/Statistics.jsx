@@ -36,16 +36,17 @@ function Statistics({ lists }) {
   }
 
   const calculateStats = () => {
-    if (lists.length === 0) return null
-
     const validLists = lists.filter(list => list.total_cost > 0)
+
+    if (validLists.length === 0) return null
+
     const totalSpent = validLists.reduce((sum, list) => sum + (list.total_cost || 0), 0)
-    const avgSpend = validLists.length > 0 ? totalSpent / validLists.length : 0
-    const maxSpend = validLists.length > 0 ? Math.max(...validLists.map(l => l.total_cost || 0)) : 0
-    const minSpend = validLists.length > 0 ? Math.min(...validLists.map(l => l.total_cost || 0)) : 0
+    const avgSpend = totalSpent / validLists.length
+    const maxSpend = Math.max(...validLists.map(l => l.total_cost || 0))
+    const minSpend = Math.min(...validLists.map(l => l.total_cost || 0))
 
     return {
-      totalWeeks: lists.length,
+      totalWeeks: validLists.length,
       totalSpent,
       avgSpend,
       maxSpend,

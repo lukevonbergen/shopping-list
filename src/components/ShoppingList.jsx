@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './ShoppingList.css'
 
-function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onDeleteItem, onUpdateCost, onUpdateMealTitle, onCreateWeek }) {
+function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onDeleteItem, onUpdateCost, onUpdateMealTitle, onCreateWeek, onGoToCurrentWeek }) {
   const [newItemName, setNewItemName] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('monday_dinner')
   const [editingNotes, setEditingNotes] = useState(null)
@@ -192,15 +192,24 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
           <button
             className="week-nav-btn"
             onClick={() => createNewWeek(-1)}
-            title="Create previous week"
+            title="Previous week"
           >
             ←
           </button>
-          <h2>Week of {formatWeekRange(list.week_start)}</h2>
+          <div className="week-title-container">
+            <h2>Week of {formatWeekRange(list.week_start)}</h2>
+            <button
+              className="today-btn"
+              onClick={onGoToCurrentWeek}
+              title="Go to current week"
+            >
+              Today
+            </button>
+          </div>
           <button
             className="week-nav-btn"
             onClick={() => createNewWeek(1)}
-            title="Create next week"
+            title="Next week"
           >
             →
           </button>
