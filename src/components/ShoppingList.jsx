@@ -196,26 +196,6 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
         </div>
       </div>
 
-      <form onSubmit={handleAddItem} className="add-item-form">
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="category-select"
-        >
-          {categories.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.label}</option>
-          ))}
-        </select>
-        <input
-          type="text"
-          value={newItemName}
-          onChange={(e) => setNewItemName(e.target.value)}
-          placeholder="Add new item..."
-          className="add-item-input"
-        />
-        <button type="submit" className="add-item-btn">Add</button>
-      </form>
-
       <div className="categories-container">
         {categories.map(category => {
           const isExpanded = expandedCategories[category.id]
@@ -229,12 +209,14 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
                 <div className="category-header-left">
                   <span className="category-chevron">{isExpanded ? '▼' : '▶'}</span>
                   <div className="category-title-container">
-                    <h3 className="category-title">
-                      {category.label}
-                      {category.dayIndex !== null && (
-                        <span className="category-date">{getDateForDay(category.dayIndex)}</span>
-                      )}
-                    </h3>
+                    <div className="category-title-row">
+                      <h3 className="category-title">
+                        {category.label}
+                        {category.dayIndex !== null && (
+                          <span className="category-date-text">({getDateForDay(category.dayIndex)})</span>
+                        )}
+                      </h3>
+                    </div>
                     {mealTitles[category.id] && !editingMealTitle && (
                       <p className="meal-title" onClick={(e) => {
                         e.stopPropagation()
