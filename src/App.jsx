@@ -21,12 +21,40 @@ function App() {
     console.log('📡 Setting up real-time subscriptions...')
     const listsSubscription = supabase
       .channel('lists_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'lists' }, handleListChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lists' }, (payload) => {
+        console.log('🔔 List change event:', payload.eventType, payload)
+        if (payload.eventType === 'INSERT') {
+          setLists(prev => [payload.new, ...prev])
+        } else if (payload.eventType === 'UPDATE') {
+          setLists(prev => prev.map(list => list.id === payload.new.id ? payload.new : list))
+          setCurrentList(prev => prev && prev.id === payload.new.id ? payload.new : prev)
+        }
+      })
       .subscribe()
 
     const itemsSubscription = supabase
       .channel('items_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, handleItemChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, (payload) => {
+        console.log('🔔 Item change event:', payload.eventType, payload)
+
+        if (payload.eventType === 'INSERT') {
+          console.log('➕ Adding new item to state:', payload.new)
+          setItems(prev => {
+            // Avoid duplicates
+            if (prev.find(item => item.id === payload.new.id)) {
+              console.log('⚠️ Item already exists, skipping')
+              return prev
+            }
+            return [...prev, payload.new]
+          })
+        } else if (payload.eventType === 'UPDATE') {
+          console.log('✏️ Updating item in state:', payload.new)
+          setItems(prev => prev.map(item => item.id === payload.new.id ? payload.new : item))
+        } else if (payload.eventType === 'DELETE') {
+          console.log('🗑️ Removing item from state:', payload.old)
+          setItems(prev => prev.filter(item => item.id !== payload.old.id))
+        }
+      })
       .subscribe()
 
     console.log('✅ Subscriptions created')
@@ -123,35 +151,6 @@ function App() {
     }
   }
 
-  const handleListChange = (payload) => {
-    if (payload.eventType === 'INSERT') {
-      setLists(prev => [payload.new, ...prev])
-    } else if (payload.eventType === 'UPDATE') {
-      setLists(prev => prev.map(list => list.id === payload.new.id ? payload.new : list))
-      if (currentList && currentList.id === payload.new.id) {
-        setCurrentList(payload.new)
-      }
-    }
-  }
-
-  const handleItemChange = (payload) => {
-    console.log('🔔 Item change event:', payload.eventType, payload)
-    if (!currentList) {
-      console.warn('⚠️ No current list, ignoring item change')
-      return
-    }
-
-    if (payload.eventType === 'INSERT' && payload.new.list_id === currentList.id) {
-      console.log('➕ Adding new item to state:', payload.new)
-      setItems(prev => [...prev, payload.new])
-    } else if (payload.eventType === 'UPDATE' && payload.new.list_id === currentList.id) {
-      console.log('✏️ Updating item in state:', payload.new)
-      setItems(prev => prev.map(item => item.id === payload.new.id ? payload.new : item))
-    } else if (payload.eventType === 'DELETE') {
-      console.log('🗑️ Removing item from state:', payload.old)
-      setItems(prev => prev.filter(item => item.id !== payload.old.id))
-    }
-  }
 
   const getWeekStart = (date) => {
     const d = new Date(date)
