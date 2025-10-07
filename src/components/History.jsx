@@ -32,7 +32,6 @@ function History({ lists, currentListId }) {
   }
 
   const pastLists = lists.filter(list =>
-    list.id !== currentListId &&
     list.total_cost > 0
   )
 
