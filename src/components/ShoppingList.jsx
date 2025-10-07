@@ -102,12 +102,22 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
   }
 
   const handleCostChange = (e) => {
-    const value = e.target.value === '' ? 0 : parseFloat(e.target.value)
-    setTotalCost(value)
+    const input = e.target.value
+    // Allow empty string or valid number input
+    if (input === '') {
+      setTotalCost(0)
+    } else {
+      // Allow typing decimals - store as string while editing
+      const numValue = parseFloat(input)
+      if (!isNaN(numValue)) {
+        setTotalCost(input)
+      }
+    }
   }
 
   const saveCost = () => {
-    onUpdateCost(totalCost)
+    const finalValue = parseFloat(totalCost) || 0
+    onUpdateCost(finalValue)
     setEditingCost(false)
   }
 
@@ -394,10 +404,11 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
         {editingCost ? (
           <div className="cost-editor">
             <input
-              type="number"
-              step="0.01"
-              value={totalCost}
+              type="text"
+              inputMode="decimal"
+              value={totalCost === 0 ? '' : totalCost}
               onChange={handleCostChange}
+              placeholder="0.00"
               className="cost-input"
               autoFocus
             />
