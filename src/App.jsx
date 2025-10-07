@@ -6,7 +6,7 @@ import Statistics from './components/Statistics'
 import './App.css'
 
 function App() {
-  const [activeView, setActiveView] = useState('current') // current, history, stats
+  const [activeView, setActiveView] = useState('lists') // lists, history, cost
   const [currentList, setCurrentList] = useState(null)
   const [lists, setLists] = useState([])
   const [items, setItems] = useState([])
@@ -269,7 +269,7 @@ function App() {
   }
 
   const createWeek = async (weekStart) => {
-    console.log('➕ Creating new week:', weekStart)
+    console.log('➕ Creating or navigating to week:', weekStart)
 
     // Check if week already exists
     const { data: existingList } = await supabase
@@ -279,8 +279,8 @@ function App() {
       .maybeSingle()
 
     if (existingList) {
-      console.warn('⚠️ Week already exists')
-      alert('This week already exists! Check the History tab.')
+      console.log('✅ Week already exists, navigating to it:', existingList)
+      setCurrentList(existingList)
       return
     }
 
@@ -296,22 +296,22 @@ function App() {
       alert('Failed to create week')
     } else {
       console.log('✅ Week created:', newList)
-      const weekEnd = new Date(weekStart)
-      weekEnd.setDate(weekEnd.getDate() + 6)
-      alert(`New week created! ${new Date(weekStart).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`)
+      setCurrentList(newList)
     }
   }
 
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🛒 Shopping List</h1>
         <nav className="nav-tabs">
+          <div className="nav-tabs-background">
+            <div className={`nav-tabs-slider nav-tabs-slider-${activeView}`}></div>
+          </div>
           <button
-            className={activeView === 'current' ? 'active' : ''}
-            onClick={() => setActiveView('current')}
+            className={activeView === 'lists' ? 'active' : ''}
+            onClick={() => setActiveView('lists')}
           >
-            Current Week
+            Lists
           </button>
           <button
             className={activeView === 'history' ? 'active' : ''}
@@ -320,16 +320,16 @@ function App() {
             History
           </button>
           <button
-            className={activeView === 'stats' ? 'active' : ''}
-            onClick={() => setActiveView('stats')}
+            className={activeView === 'cost' ? 'active' : ''}
+            onClick={() => setActiveView('cost')}
           >
-            Statistics
+            Cost
           </button>
         </nav>
       </header>
 
       <main className="app-main">
-        {activeView === 'current' && currentList && (
+        {activeView === 'lists' && currentList && (
           <ShoppingList
             list={currentList}
             items={items}
@@ -345,7 +345,7 @@ function App() {
         {activeView === 'history' && (
           <History lists={lists} currentListId={currentList?.id} />
         )}
-        {activeView === 'stats' && (
+        {activeView === 'cost' && (
           <Statistics lists={lists} />
         )}
       </main>

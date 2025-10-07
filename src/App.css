@@ -5,7 +5,7 @@
 
 .app-header {
   background: white;
-  padding: 1.5rem 1rem;
+  padding: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   margin-bottom: 1rem;
   position: sticky;
@@ -13,26 +13,52 @@
   z-index: 100;
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.95);
-}
-
-.app-header h1 {
-  margin: 0 0 1rem 0;
-  color: #1d1d1f;
-  font-size: 1.75rem;
-  font-weight: 600;
-  text-align: center;
-  letter-spacing: -0.5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .nav-tabs {
+  position: relative;
   display: flex;
-  gap: 0.5rem;
-  justify-content: center;
   background: #f5f5f7;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 4px;
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 400px;
+  width: 100%;
+}
+
+.nav-tabs-background {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  pointer-events: none;
+}
+
+.nav-tabs-slider {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: calc(33.333% - 2.67px);
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.nav-tabs-slider-lists {
+  transform: translateX(0);
+}
+
+.nav-tabs-slider-history {
+  transform: translateX(calc(100% + 4px));
+}
+
+.nav-tabs-slider-cost {
+  transform: translateX(calc(200% + 8px));
 }
 
 .nav-tabs button {
@@ -40,23 +66,19 @@
   padding: 0.625rem 1rem;
   background: transparent;
   border: none;
-  border-radius: 10px;
   color: #1d1d1f;
   font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
-}
-
-.nav-tabs button:hover {
-  background: rgba(0, 0, 0, 0.04);
+  position: relative;
+  z-index: 1;
 }
 
 .nav-tabs button.active {
-  background: white;
   color: #34c759;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-weight: 600;
 }
 
 .app-main {
@@ -70,13 +92,29 @@
     padding: 1.5rem 2rem;
   }
 
-  .app-header h1 {
-    font-size: 2rem;
+  .nav-tabs {
+    padding: 6px;
+    border-radius: 16px;
   }
 
-  .nav-tabs {
-    gap: 0.75rem;
-    padding: 6px;
+  .nav-tabs-background {
+    top: 6px;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+  }
+
+  .nav-tabs-slider {
+    width: calc(33.333% - 4px);
+    border-radius: 12px;
+  }
+
+  .nav-tabs-slider-history {
+    transform: translateX(calc(100% + 6px));
+  }
+
+  .nav-tabs-slider-cost {
+    transform: translateX(calc(200% + 12px));
   }
 
   .nav-tabs button {

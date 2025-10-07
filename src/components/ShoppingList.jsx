@@ -13,11 +13,22 @@ function ShoppingList({ list, items, onAddItem, onToggleItem, onUpdateNotes, onD
   const [mealTitles, setMealTitles] = useState(list.meal_titles || {})
   const [editingMealTitle, setEditingMealTitle] = useState(null)
 
+  const getOrdinalSuffix = (day) => {
+    if (day > 3 && day < 21) return 'th'
+    switch (day % 10) {
+      case 1: return 'st'
+      case 2: return 'nd'
+      case 3: return 'rd'
+      default: return 'th'
+    }
+  }
+
   const getDateForDay = (dayIndex) => {
     const weekStart = new Date(list.week_start)
     const date = new Date(weekStart)
     date.setDate(date.getDate() + dayIndex)
-    return date.getDate()
+    const day = date.getDate()
+    return `${day}${getOrdinalSuffix(day)}`
   }
 
   const categories = [

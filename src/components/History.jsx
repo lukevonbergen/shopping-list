@@ -31,7 +31,10 @@ function History({ lists, currentListId }) {
     return `${start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
   }
 
-  const pastLists = lists.filter(list => list.id !== currentListId)
+  const pastLists = lists.filter(list =>
+    list.id !== currentListId &&
+    list.total_cost > 0
+  )
 
   return (
     <div className="history">
